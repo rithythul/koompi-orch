@@ -28,8 +28,10 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 thiserror = "2"
 chrono = { version = "0.4", features = ["serde"] }
 regex = "1"
+libc = "0.2"
 nix = { version = "0.29", features = ["signal"] }
 octocrab = "0.41"
 
 [dev-dependencies]
+filetime = "0.2"
 tempfile = "3"
