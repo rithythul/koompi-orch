@@ -1,7 +1,13 @@
 import { ThreePanel } from "../components/layout/ThreePanel";
+import { CommandPalette } from "../components/layout/CommandPalette";
 
 function App() {
-  return <ThreePanel />;
+  return (
+    <>
+      <ThreePanel />
+      <CommandPalette />
+    </>
+  );
 }
 
 export default App;
