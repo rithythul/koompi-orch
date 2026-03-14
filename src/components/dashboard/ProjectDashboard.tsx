@@ -80,7 +80,7 @@ export function ProjectDashboard({
           <StatCard
             label="Workspaces"
             value={String(stats.totalWorkspaces)}
-            accent="bg-[rgba(255,255,255,0.04)]"
+            accent="bg-card-bg-hover"
             icon={<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" className="text-text-tertiary"><rect x="1.5" y="1.5" width="5" height="5" rx="1"/><rect x="9.5" y="1.5" width="5" height="5" rx="1"/><rect x="1.5" y="9.5" width="5" height="5" rx="1"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/></svg>}
           />
           <StatCard
@@ -118,11 +118,11 @@ export function ProjectDashboard({
           ) : (
             <div className="divide-y divide-border">
               {recentSessions.map((session) => {
-                const cfg = STATUS_CONFIG[session.status] ?? { color: "text-text-ghost", dot: "bg-text-ghost", bg: "bg-[rgba(255,255,255,0.03)]" };
+                const cfg = STATUS_CONFIG[session.status] ?? { color: "text-text-ghost", dot: "bg-text-ghost", bg: "bg-input-bg" };
                 return (
                   <div
                     key={session.id}
-                    className="flex items-center justify-between px-5 py-3.5 hover:bg-[rgba(255,255,255,0.02)] transition-colors duration-100 cursor-pointer group"
+                    className="flex items-center justify-between px-5 py-3.5 hover:bg-card-bg transition-colors duration-100 cursor-pointer group"
                   >
                     <div className="flex items-center gap-3.5">
                       <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />

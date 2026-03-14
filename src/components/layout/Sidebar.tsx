@@ -41,14 +41,14 @@ export function Sidebar({ collapsed }: SidebarProps) {
       <div className="px-3 mb-3">
         <button
           onClick={() => {/* command palette */}}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-[rgba(255,255,255,0.03)] border border-border hover:border-border-strong text-text-tertiary text-xs transition-all duration-150"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-input-bg border border-border hover:border-border-strong text-text-tertiary text-xs transition-all duration-150"
         >
           <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
             <circle cx="7" cy="7" r="5.5"/>
             <path d="M11 11L14.5 14.5"/>
           </svg>
           <span className="flex-1 text-left">Search</span>
-          <kbd className="text-[10px] text-text-ghost font-mono bg-[rgba(255,255,255,0.04)] px-1.5 py-0.5 rounded border border-border">
+          <kbd className="text-[10px] text-text-ghost font-mono bg-card-bg-hover px-1.5 py-0.5 rounded border border-border">
             /
           </kbd>
         </button>
@@ -67,7 +67,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
               className={`w-full text-left px-3 py-[7px] rounded-md text-[13px] flex items-center gap-2.5 transition-all duration-150 group ${
                 isActive
                   ? "bg-accent-muted text-accent-hover font-medium"
-                  : "text-text-secondary hover:bg-[rgba(255,255,255,0.04)] hover:text-text-primary"
+                  : "text-text-secondary hover:bg-card-bg-hover hover:text-text-primary"
               }`}
             >
               <Icon active={isActive} />

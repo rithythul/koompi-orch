@@ -7,14 +7,14 @@ interface ThemeToggleProps {
 
 export function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
   return (
-    <div className="flex items-center gap-1 bg-gray-800 rounded-lg p-1">
+    <div className="flex items-center gap-1 bg-elevated border border-border rounded-lg p-1">
       <button
         type="button"
         onClick={() => onToggle("dark")}
         className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
           theme === "dark"
-            ? "bg-blue-500 text-white"
-            : "text-gray-400 hover:text-gray-200"
+            ? "bg-accent text-white"
+            : "text-text-tertiary hover:text-text-primary"
         }`}
       >
         Dark
@@ -24,8 +24,8 @@ export function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
         onClick={() => onToggle("light")}
         className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
           theme === "light"
-            ? "bg-blue-500 text-white"
-            : "text-gray-400 hover:text-gray-200"
+            ? "bg-accent text-white"
+            : "text-text-tertiary hover:text-text-primary"
         }`}
       >
         Light

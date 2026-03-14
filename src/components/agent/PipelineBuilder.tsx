@@ -82,7 +82,7 @@ function SortableStep({
     opacity: isDragging ? 0.4 : 1,
   };
 
-  const colors = ROLE_COLORS[step.role] ?? { border: "border-l-gray-500", badge: "bg-[rgba(255,255,255,0.04)] text-text-ghost", text: "text-text-ghost" };
+  const colors = ROLE_COLORS[step.role] ?? { border: "border-l-gray-500", badge: "bg-card-bg-hover text-text-ghost", text: "text-text-ghost" };
 
   return (
     <>
@@ -113,7 +113,7 @@ function SortableStep({
         <select
           value={step.role}
           onChange={(e) => onChange({ role: e.target.value })}
-          className="bg-[rgba(255,255,255,0.03)] border border-border rounded-md px-2.5 py-1.5 text-[12px] font-medium text-text-primary focus:outline-none focus:border-accent transition-colors cursor-pointer"
+          className="bg-input-bg border border-border rounded-md px-2.5 py-1.5 text-[12px] font-medium text-text-primary focus:outline-none focus:border-accent transition-colors cursor-pointer"
         >
           {ROLES.map((r) => (
             <option key={r} value={r}>{r}</option>
@@ -127,7 +127,7 @@ function SortableStep({
         <select
           value={step.agentType}
           onChange={(e) => onChange({ agentType: e.target.value })}
-          className="bg-[rgba(255,255,255,0.03)] border border-border rounded-md px-2.5 py-1.5 text-[12px] font-mono text-text-secondary focus:outline-none focus:border-accent transition-colors cursor-pointer"
+          className="bg-input-bg border border-border rounded-md px-2.5 py-1.5 text-[12px] font-mono text-text-secondary focus:outline-none focus:border-accent transition-colors cursor-pointer"
         >
           {AGENT_TYPES.map((a) => (
             <option key={a} value={a}>{a}</option>
@@ -158,7 +158,7 @@ function SortableStep({
                 handoffType: e.target.value as PipelineStep["handoffType"],
               })
             }
-            className="bg-[rgba(255,255,255,0.02)] border border-border rounded px-2 py-0.5 text-[10px] font-mono text-text-ghost focus:outline-none focus:border-accent transition-colors cursor-pointer"
+            className="bg-card-bg border border-border rounded px-2 py-0.5 text-[10px] font-mono text-text-ghost focus:outline-none focus:border-accent transition-colors cursor-pointer"
           >
             {HANDOFF_TYPES.map((h) => (
               <option key={h} value={h}>{h}</option>

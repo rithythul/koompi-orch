@@ -1,6 +1,7 @@
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { lazy } from "react";
+import type { PipelineStep } from "../agent/PipelineBuilder";
 
 const ProjectDashboard = lazy(
   () => import("../dashboard/ProjectDashboard").then((m) => ({ default: m.ProjectDashboard }))
@@ -65,29 +66,8 @@ export function CenterPanel() {
             }
           />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route
-            path="/plugins"
-            element={
-              <PageShell title="Plugins" subtitle="Manage extensions and integrations" count={defaultPlugins.length}>
-                <PluginList
-                  plugins={defaultPlugins}
-                  onToggle={() => {}}
-                  onSelect={() => {}}
-                />
-              </PageShell>
-            }
-          />
-          <Route
-            path="/pipelines"
-            element={
-              <PageShell title="Pipelines" subtitle="Design multi-agent workflows">
-                <PipelineBuilder
-                  steps={defaultPipelineSteps}
-                  onStepsChange={() => {}}
-                />
-              </PageShell>
-            }
-          />
+          <Route path="/plugins" element={<PluginsView />} />
+          <Route path="/pipelines" element={<PipelinesView />} />
           <Route path="/templates" element={<TemplatesView />} />
         </Routes>
       </Suspense>
@@ -109,7 +89,7 @@ function PageShell({ title, subtitle, count, action, children }: {
         <div className="flex items-center gap-3">
           <h2 className="text-[13px] font-semibold text-text-primary">{title}</h2>
           {count !== undefined && (
-            <span className="text-[10px] font-mono text-text-ghost bg-[rgba(255,255,255,0.04)] px-1.5 py-0.5 rounded">
+            <span className="text-[10px] font-mono text-text-ghost bg-card-bg-hover px-1.5 py-0.5 rounded">
               {count}
             </span>
           )}
@@ -164,7 +144,7 @@ function KanbanColumn({ status }: { status: string }) {
   const { color, dot } = config[status] ?? { color: "text-text-tertiary", dot: "bg-text-ghost" };
 
   return (
-    <div className="bg-[rgba(255,255,255,0.02)] border border-border rounded-lg flex flex-col">
+    <div className="bg-card-bg border border-border rounded-lg flex flex-col">
       <div className="px-3.5 py-3 border-b border-border flex items-center gap-2">
         <div className={`w-2 h-2 rounded-full ${dot}`} />
         <h3 className={`text-[11px] font-semibold uppercase tracking-wider ${color}`}>
@@ -178,6 +158,34 @@ function KanbanColumn({ status }: { status: string }) {
         </p>
       </div>
     </div>
+  );
+}
+
+/* — Pipelines — */
+function PipelinesView() {
+  const [steps, setSteps] = useState<PipelineStep[]>(defaultPipelineSteps);
+
+  return (
+    <PageShell title="Pipelines" subtitle="Design multi-agent workflows">
+      <PipelineBuilder steps={steps} onStepsChange={setSteps} />
+    </PageShell>
+  );
+}
+
+/* — Plugins — */
+function PluginsView() {
+  const [plugins, setPlugins] = useState(defaultPlugins);
+
+  const handleToggle = (name: string, enabled: boolean) => {
+    setPlugins((prev) =>
+      prev.map((p) => (p.name === name ? { ...p, enabled } : p))
+    );
+  };
+
+  return (
+    <PageShell title="Plugins" subtitle="Manage extensions and integrations" count={plugins.length}>
+      <PluginList plugins={plugins} onToggle={handleToggle} onSelect={() => {}} />
+    </PageShell>
   );
 }
 
@@ -219,7 +227,7 @@ function TemplatesView() {
               </div>
               <p className="text-[11px] text-text-tertiary mt-0.5">{t.description}</p>
             </div>
-            <code className="text-[11px] font-mono text-text-ghost bg-[rgba(255,255,255,0.03)] px-2 py-1 rounded border border-border">
+            <code className="text-[11px] font-mono text-text-ghost bg-input-bg px-2 py-1 rounded border border-border">
               {t.command}
             </code>
             <button className="text-[11px] text-text-ghost hover:text-text-secondary transition-colors opacity-0 group-hover:opacity-100">

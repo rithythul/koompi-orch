@@ -141,7 +141,7 @@ export function SettingsPage() {
                 max={50}
                 value={maxConcurrentAgents}
                 onChange={(e) => setMaxConcurrentAgents(Number(e.target.value) || 10)}
-                className="w-16 bg-[rgba(255,255,255,0.03)] border border-border rounded-md px-2.5 py-1.5 text-[13px] font-mono text-text-primary text-center focus:outline-none focus:border-accent transition-colors"
+                className="w-16 bg-input-bg border border-border rounded-md px-2.5 py-1.5 text-[13px] font-mono text-text-primary text-center focus:outline-none focus:border-accent transition-colors"
               />
             </SettingsRow>
             <SettingsRow label="Default agent" description="Agent used when creating new sessions">
@@ -245,7 +245,7 @@ function SelectInput({ value, onChange, options }: {
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="bg-[rgba(255,255,255,0.03)] border border-border rounded-md px-2.5 py-1.5 text-[13px] text-text-primary focus:outline-none focus:border-accent transition-colors cursor-pointer"
+      className="bg-input-bg border border-border rounded-md px-2.5 py-1.5 text-[13px] text-text-primary focus:outline-none focus:border-accent transition-colors cursor-pointer"
     >
       {options.map((o) => (
         <option key={o.value} value={o.value}>{o.label}</option>
@@ -263,7 +263,7 @@ function ToggleSwitch({ checked, onChange }: {
       type="button"
       onClick={() => onChange(!checked)}
       className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${
-        checked ? "bg-accent" : "bg-[rgba(255,255,255,0.1)]"
+        checked ? "bg-accent" : "bg-elevated"
       }`}
     >
       <span

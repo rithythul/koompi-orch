@@ -2,31 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  /* Background layers — subtle warmth in the dark tones */
+/* ─── Dark theme (default) ─── */
+:root,
+html.dark {
   --bg-primary: #09090b;
   --bg-secondary: #111113;
   --bg-tertiary: #18181b;
   --bg-elevated: #1c1c20;
   --bg-surface: rgba(255, 255, 255, 0.03);
 
-  /* Borders — two tiers for depth */
   --border: rgba(255, 255, 255, 0.08);
   --border-strong: rgba(255, 255, 255, 0.14);
 
-  /* Text — high-contrast hierarchy */
   --text-primary: #fafafa;
   --text-secondary: #a1a1aa;
   --text-tertiary: #71717a;
   --text-ghost: #52525b;
 
-  /* Accent — electric indigo, not the typical purple-slop */
   --accent: #6366f1;
   --accent-hover: #818cf8;
   --accent-muted: rgba(99, 102, 241, 0.12);
   --accent-glow: rgba(99, 102, 241, 0.25);
 
-  /* Semantic */
   --success: #34d399;
   --success-muted: rgba(52, 211, 153, 0.12);
   --warning: #fbbf24;
@@ -36,16 +33,59 @@
   --info: #60a5fa;
   --info-muted: rgba(96, 165, 250, 0.12);
 
-  /* Spacing rhythm */
+  --card-bg: rgba(255, 255, 255, 0.02);
+  --card-bg-hover: rgba(255, 255, 255, 0.04);
+  --input-bg: rgba(255, 255, 255, 0.03);
+  --scrollbar-thumb: rgba(255, 255, 255, 0.08);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.15);
+  --noise-opacity: 0.015;
+
   --sidebar-width: 240px;
   --panel-width: 320px;
   --header-height: 48px;
 
-  /* Radius */
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
+}
+
+/* ─── Light theme ─── */
+html.light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f8fa;
+  --bg-tertiary: #f0f0f3;
+  --bg-elevated: #e8e8ec;
+  --bg-surface: rgba(0, 0, 0, 0.02);
+
+  --border: rgba(0, 0, 0, 0.08);
+  --border-strong: rgba(0, 0, 0, 0.15);
+
+  --text-primary: #111113;
+  --text-secondary: #555560;
+  --text-tertiary: #8a8a97;
+  --text-ghost: #b0b0bb;
+
+  --accent: #4f46e5;
+  --accent-hover: #6366f1;
+  --accent-muted: rgba(79, 70, 229, 0.08);
+  --accent-glow: rgba(79, 70, 229, 0.15);
+
+  --success: #16a34a;
+  --success-muted: rgba(22, 163, 74, 0.08);
+  --warning: #d97706;
+  --warning-muted: rgba(217, 119, 6, 0.08);
+  --error: #dc2626;
+  --error-muted: rgba(220, 38, 38, 0.08);
+  --info: #2563eb;
+  --info-muted: rgba(37, 99, 235, 0.08);
+
+  --card-bg: rgba(0, 0, 0, 0.015);
+  --card-bg-hover: rgba(0, 0, 0, 0.03);
+  --input-bg: rgba(0, 0, 0, 0.03);
+  --scrollbar-thumb: rgba(0, 0, 0, 0.12);
+  --scrollbar-thumb-hover: rgba(0, 0, 0, 0.22);
+  --noise-opacity: 0.008;
 }
 
 * {
@@ -62,13 +102,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   letter-spacing: -0.011em;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 code, pre, .font-mono {
   font-family: 'Geist Mono', 'SF Mono', 'Fira Code', monospace;
 }
 
-/* Scrollbar styling */
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -77,11 +118,11 @@ code, pre, .font-mono {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--scrollbar-thumb);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Transitions */
@@ -91,27 +132,29 @@ code, pre, .font-mono {
 
 /* Card glass effect */
 .card-glass {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--card-bg);
   border: 1px solid var(--border);
   backdrop-filter: blur(12px);
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .card-glass:hover {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--card-bg-hover);
   border-color: var(--border-strong);
 }
 
-/* Subtle noise texture overlay */
+/* Noise texture */
 .noise-bg::before {
   content: '';
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.015'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: var(--noise-opacity);
   pointer-events: none;
   z-index: 0;
 }
 
-/* Glow effect for accent elements */
+/* Glow */
 .glow-accent {
   box-shadow: 0 0 20px var(--accent-glow), 0 0 4px var(--accent-muted);
 }
@@ -129,6 +172,12 @@ textarea {
 .focus-ring:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px var(--accent);
+}
+
+/* Select option styling for light mode */
+html.light select option {
+  background: #ffffff;
+  color: #111113;
 }
 
 /* Animate in */

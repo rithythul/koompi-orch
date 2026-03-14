@@ -23,7 +23,7 @@ describe("ThemeToggle", () => {
   it("highlights the active theme", () => {
     render(<ThemeToggle theme="dark" onToggle={vi.fn()} />);
     const darkBtn = screen.getByText("Dark").closest("button");
-    expect(darkBtn?.className).toContain("bg-blue-500");
+    expect(darkBtn?.className).toContain("bg-accent");
   });
 
   it("calls onToggle when the other theme is clicked", () => {

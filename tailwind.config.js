@@ -27,6 +27,9 @@ export default {
         'error-muted': 'var(--error-muted)',
         info: 'var(--info)',
         'info-muted': 'var(--info-muted)',
+        'card-bg': 'var(--card-bg)',
+        'card-bg-hover': 'var(--card-bg-hover)',
+        'input-bg': 'var(--input-bg)',
       },
       fontFamily: {
         sans: ['DM Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],

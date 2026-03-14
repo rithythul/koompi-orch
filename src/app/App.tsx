@@ -1,9 +1,19 @@
+import { useEffect } from "react";
 import { BrowserRouter } from "react-router-dom";
 import { ThreePanel } from "../components/layout/ThreePanel";
 import { CommandPalette } from "../components/layout/CommandPalette";
 import { ToastContainer } from "../components/notifications/ToastContainer";
+import { useSettingsStore } from "../stores/settingsStore";
 
 function App() {
+  const theme = useSettingsStore((s) => s.theme);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.remove("dark", "light");
+    root.classList.add(theme);
+  }, [theme]);
+
   return (
     <BrowserRouter>
       <ThreePanel />

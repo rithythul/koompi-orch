@@ -18,7 +18,7 @@ export function RightPanel({ collapsed }: RightPanelProps) {
 
       {/* Empty state */}
       <div className="flex-1 flex flex-col items-center justify-center px-6">
-        <div className="w-10 h-10 rounded-xl bg-[rgba(255,255,255,0.03)] border border-border flex items-center justify-center mb-4">
+        <div className="w-10 h-10 rounded-xl bg-input-bg border border-border flex items-center justify-center mb-4">
           <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.2" className="text-text-ghost">
             <path d="M2 4L8 1L14 4V12L8 15L2 12V4Z"/>
             <path d="M8 7V10M8 12V12.5" strokeLinecap="round"/>
@@ -39,7 +39,7 @@ export function RightPanel({ collapsed }: RightPanelProps) {
             type="text"
             placeholder="Send a message..."
             disabled
-            className="w-full px-3.5 py-2.5 bg-[rgba(255,255,255,0.03)] border border-border rounded-lg text-[13px] text-text-primary placeholder:text-text-ghost disabled:opacity-40 focus:outline-none focus:border-accent transition-colors"
+            className="w-full px-3.5 py-2.5 bg-input-bg border border-border rounded-lg text-[13px] text-text-primary placeholder:text-text-ghost disabled:opacity-40 focus:outline-none focus:border-accent transition-colors"
           />
           <button
             disabled
