@@ -28,6 +28,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 thiserror = "2"
 chrono = { version = "0.4", features = ["serde"] }
 regex = "1"
+octocrab = "0.41"
 
 [dev-dependencies]
 tempfile = "3"
