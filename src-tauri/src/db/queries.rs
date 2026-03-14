@@ -52,14 +52,16 @@ impl<'a> Queries<'a> {
             .await?
             .take(0)?;
 
-        // Create the relation
-        if let Some(ref workspace) = ws {
-            if let Some(ref ws_id) = workspace.id {
-                self.db
-                    .query("RELATE $ws_id->belongs_to->type::thing('repo', $repo_id)")
-                    .bind(("ws_id", ws_id.clone()))
-                    .bind(("repo_id", repo_id.to_string()))
-                    .await?;
+        // Create the relation (only if a valid repo_id was provided)
+        if !repo_id.is_empty() {
+            if let Some(ref workspace) = ws {
+                if let Some(ref ws_id) = workspace.id {
+                    self.db
+                        .query("RELATE $ws_id->belongs_to->type::thing('repo', $repo_id)")
+                        .bind(("ws_id", ws_id.clone()))
+                        .bind(("repo_id", repo_id.to_string()))
+                        .await?;
+                }
             }
         }
 

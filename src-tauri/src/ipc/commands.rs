@@ -69,11 +69,11 @@ pub async fn create_workspace(
     name: String,
     branch: String,
     worktree_path: String,
-    repo_id: String,
+    repo_id: Option<String>,
 ) -> Result<Workspace, String> {
     let db = db.lock().await;
     Queries::new(&db)
-        .create_workspace(&name, &branch, &worktree_path, &repo_id)
+        .create_workspace(&name, &branch, &worktree_path, repo_id.as_deref().unwrap_or(""))
         .await
         .map_err(|e| e.to_string())
 }

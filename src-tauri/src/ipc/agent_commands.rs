@@ -1,10 +1,10 @@
-//! IPC commands for agent lifecycle: spawn, kill, send message, list sessions.
+//! IPC commands for agent lifecycle, settings, templates, and API keys.
 
 use crate::agent::registry::AgentRegistry;
 use crate::config::AppConfig;
 use crate::ipc::commands::DbState;
 use crate::orchestrator::engine::{Engine, SessionState};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Arc;
 use tauri::State;
@@ -31,6 +31,10 @@ fn state_str(s: SessionState) -> String {
     .to_string()
 }
 
+// ---------------------------------------------------------------------------
+// Agent lifecycle
+// ---------------------------------------------------------------------------
+
 /// Spawn a new agent session in a workspace directory.
 #[tauri::command]
 pub async fn spawn_agent(
@@ -42,7 +46,6 @@ pub async fn spawn_agent(
 ) -> Result<String, String> {
     let db_guard = db.lock().await;
 
-    // Look up the agent template
     let template = AgentRegistry::get_template(&db_guard, &agent_type)
         .await
         .map_err(|e| e.to_string())?;
@@ -59,7 +62,6 @@ pub async fn spawn_agent(
             config.args.push(msg_flag.clone());
             config.args.push(task_msg.clone());
         }
-        // Also add --print for non-interactive mode if available
         if let Some(ref print_flag) = config.print_flag {
             config.args.push(print_flag.clone());
         }
@@ -128,6 +130,10 @@ pub async fn running_agent_count(
     Ok(engine.running_count().await)
 }
 
+// ---------------------------------------------------------------------------
+// Settings
+// ---------------------------------------------------------------------------
+
 /// Save a single setting key-value to the config file.
 #[tauri::command]
 pub async fn set_setting(
@@ -156,10 +162,126 @@ pub async fn set_setting(
     cfg.save().map_err(|e| e.to_string())
 }
 
-/// Get current settings (returns the full config).
+/// Get current settings.
 #[tauri::command]
 pub async fn get_settings(
     config: State<'_, AppConfig>,
 ) -> Result<AppConfig, String> {
     Ok(config.inner().clone())
+}
+
+// ---------------------------------------------------------------------------
+// Agent templates
+// ---------------------------------------------------------------------------
+
+/// Serializable template for frontend.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TemplateInfo {
+    pub id: String,
+    pub name: String,
+    pub command: String,
+    pub args: Vec<String>,
+    #[serde(rename = "inputMode")]
+    pub input_mode: String,
+    #[serde(rename = "outputMode")]
+    pub output_mode: String,
+    #[serde(rename = "builtIn")]
+    pub built_in: bool,
+}
+
+/// List all agent templates (builtin + custom).
+#[tauri::command]
+pub async fn list_agent_templates(
+    db: State<'_, DbState>,
+) -> Result<Vec<TemplateInfo>, String> {
+    let db = db.lock().await;
+    let templates = AgentRegistry::list_templates(&db)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    Ok(templates
+        .into_iter()
+        .map(|t| TemplateInfo {
+            id: t.name.clone(),
+            name: t.name,
+            command: t.command,
+            args: t.default_args,
+            input_mode: t.input_mode,
+            output_mode: t.output_mode,
+            built_in: t.builtin,
+        })
+        .collect())
+}
+
+/// Save (create or update) an agent template.
+#[tauri::command]
+pub async fn save_agent_template(
+    db: State<'_, DbState>,
+    template: TemplateInfo,
+) -> Result<(), String> {
+    let db = db.lock().await;
+    let reg_template = crate::agent::registry::AgentTemplate {
+        name: template.name,
+        command: template.command,
+        default_args: template.args,
+        env: None,
+        input_mode: template.input_mode,
+        output_mode: template.output_mode,
+        resume_support: false,
+        builtin: false,
+        message_flag: None,
+        print_flag: None,
+        resume_flag: None,
+    };
+    AgentRegistry::register_custom(&db, &reg_template)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+/// Delete a custom agent template.
+#[tauri::command]
+pub async fn delete_agent_template(
+    db: State<'_, DbState>,
+    id: String,
+) -> Result<(), String> {
+    let db = db.lock().await;
+    AgentRegistry::delete_custom(&db, &id)
+        .await
+        .map_err(|e| e.to_string())
+}
+
+// ---------------------------------------------------------------------------
+// API Keys (stored via config for now — Stronghold integration later)
+// ---------------------------------------------------------------------------
+
+/// Save an API key (writes to config file for now).
+#[tauri::command]
+pub async fn save_api_key(
+    provider: String,
+    key: String,
+) -> Result<(), String> {
+    let key_dir = dirs::home_dir()
+        .unwrap_or_default()
+        .join(".koompi-orch")
+        .join("credentials");
+    std::fs::create_dir_all(&key_dir).map_err(|e| e.to_string())?;
+    let key_file = key_dir.join(format!("{}.key", provider));
+    std::fs::write(&key_file, &key).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
+/// Delete an API key.
+#[tauri::command]
+pub async fn delete_api_key(
+    provider: String,
+) -> Result<(), String> {
+    let key_file = dirs::home_dir()
+        .unwrap_or_default()
+        .join(".koompi-orch")
+        .join("credentials")
+        .join(format!("{}.key", provider));
+    if key_file.exists() {
+        std::fs::remove_file(&key_file).map_err(|e| e.to_string())?;
+    }
+    Ok(())
 }

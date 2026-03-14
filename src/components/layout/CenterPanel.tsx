@@ -1,7 +1,28 @@
-import { Suspense, useState } from "react";
+import { Suspense, useState, useCallback } from "react";
 import { Routes, Route } from "react-router-dom";
 import { lazy } from "react";
+import { invoke } from "@tauri-apps/api/core";
 import type { PipelineStep } from "../agent/PipelineBuilder";
+import { useWorkspaceStore, type Workspace, type WorkspaceStatus } from "../../stores/workspaceStore";
+import { useAgentStore } from "../../stores/agentStore";
+
+/** Extract a string ID from SurrealDB Thing (handles various serialization formats) */
+function extractId(thing: unknown): string {
+  if (!thing) return "";
+  if (typeof thing === "string") return thing;
+  const t = thing as Record<string, unknown>;
+  // Format: { tb: "workspace", id: { String: "xxx" } }
+  if (t.tb && t.id) {
+    const inner = t.id;
+    if (typeof inner === "string") return `${t.tb}:${inner}`;
+    if (typeof inner === "object" && inner !== null) {
+      const s = (inner as Record<string, unknown>).String;
+      if (typeof s === "string") return `${t.tb}:${s}`;
+    }
+    return `${t.tb}:${JSON.stringify(t.id)}`;
+  }
+  return String(thing);
+}
 
 const ProjectDashboard = lazy(
   () => import("../dashboard/ProjectDashboard").then((m) => ({ default: m.ProjectDashboard }))
@@ -15,19 +36,6 @@ const PluginList = lazy(
 const PipelineBuilder = lazy(
   () => import("../agent/PipelineBuilder").then((m) => ({ default: m.PipelineBuilder }))
 );
-
-const defaultStats = {
-  totalWorkspaces: 3,
-  activeAgents: 5,
-  totalCostUsd: 12.47,
-  totalTokens: 284500,
-};
-
-const defaultSessions = [
-  { id: "s1", workspaceName: "auth-service", agentType: "claude-code", status: "running" as const, costUsd: 0.42, startedAt: "2026-03-14T15:30:00Z" },
-  { id: "s2", workspaceName: "payment-api", agentType: "codex", status: "completed" as const, costUsd: 1.87, startedAt: "2026-03-14T15:15:00Z" },
-  { id: "s3", workspaceName: "ui-dashboard", agentType: "gemini-cli", status: "crashed" as const, costUsd: 0.05, startedAt: "2026-03-14T14:30:00Z" },
-];
 
 const defaultPipelineSteps = [
   { id: "s1", role: "architect", agentType: "claude-code" as const },
@@ -56,15 +64,7 @@ export function CenterPanel() {
       >
         <Routes>
           <Route path="/" element={<WorkspacesView />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProjectDashboard
-                stats={defaultStats}
-                recentSessions={defaultSessions}
-              />
-            }
-          />
+          <Route path="/dashboard" element={<DashboardView />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/plugins" element={<PluginsView />} />
           <Route path="/pipelines" element={<PipelinesView />} />
@@ -111,13 +111,79 @@ function PageShell({ title, subtitle, count, action, children }: {
 
 /* — Workspaces / Kanban — */
 function WorkspacesView() {
+  const workspaces = useWorkspaceStore((s) => s.workspaces);
+  const addWorkspace = useWorkspaceStore((s) => s.addWorkspace);
+  const selectWorkspace = useWorkspaceStore((s) => s.selectWorkspace);
+  const selectedWorkspaceId = useWorkspaceStore((s) => s.selectedWorkspaceId);
+  const setActiveSession = useAgentStore((s) => s.setActiveSession);
+  const setSession = useAgentStore((s) => s.setSession);
+  const sessionForWorkspace = useAgentStore((s) => s.sessionForWorkspace);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  const workspacesByStatus = (status: WorkspaceStatus) =>
+    workspaces.filter((w) => w.status === status);
+
+  const handleCreate = useCallback(async (name: string, branch: string, path: string) => {
+    try {
+      const ws = await invoke<Record<string, unknown>>(
+        "create_workspace",
+        { name, branch, worktreePath: path }
+      );
+      const newWs: Workspace = {
+        id: extractId(ws.id) || `ws-${Date.now()}`,
+        name: (ws.name as string) || name,
+        branch: (ws.branch as string) || branch,
+        worktreePath: (ws.worktree_path as string) || path,
+        status: "backlog",
+        repoId: "",
+        repoName: "",
+        lockedBy: null,
+        hasConflict: false,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      addWorkspace(newWs);
+      setShowCreateDialog(false);
+    } catch (err) {
+      console.error("Failed to create workspace:", err);
+    }
+  }, [addWorkspace]);
+
+  const handleSelectWorkspace = useCallback((ws: Workspace) => {
+    selectWorkspace(ws.id);
+    // Create or find an agent session for this workspace
+    const existing = sessionForWorkspace(ws.id);
+    if (existing) {
+      setActiveSession(existing.id);
+    } else {
+      const sessionId = `session-${Date.now()}`;
+      setSession({
+        id: sessionId,
+        workspaceId: ws.id,
+        agentType: "claude-code",
+        model: null,
+        rolePreset: null,
+        status: "paused",
+        pid: null,
+        messages: [],
+        metrics: { tokensIn: 0, tokensOut: 0, costUsd: 0, durationMs: 0 },
+        startedAt: new Date().toISOString(),
+        endedAt: null,
+      });
+      setActiveSession(sessionId);
+    }
+  }, [selectWorkspace, sessionForWorkspace, setActiveSession, setSession]);
+
   return (
     <PageShell
       title="Workspaces"
       subtitle="Kanban board"
-      count={0}
+      count={workspaces.length}
       action={
-        <button className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium bg-accent hover:bg-accent-hover text-white rounded-md transition-colors duration-150">
+        <button
+          onClick={() => setShowCreateDialog(true)}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium bg-accent hover:bg-accent-hover text-white rounded-md transition-colors duration-150"
+        >
           <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M8 3V13M3 8H13"/>
           </svg>
@@ -125,16 +191,33 @@ function WorkspacesView() {
         </button>
       }
     >
+      {showCreateDialog && (
+        <CreateWorkspaceDialog
+          onClose={() => setShowCreateDialog(false)}
+          onCreate={handleCreate}
+        />
+      )}
       <div className="grid grid-cols-4 gap-4 h-full">
         {(["backlog", "active", "review", "done"] as const).map((status) => (
-          <KanbanColumn key={status} status={status} />
+          <KanbanColumn
+            key={status}
+            status={status}
+            workspaces={workspacesByStatus(status)}
+            selectedId={selectedWorkspaceId}
+            onSelect={handleSelectWorkspace}
+          />
         ))}
       </div>
     </PageShell>
   );
 }
 
-function KanbanColumn({ status }: { status: string }) {
+function KanbanColumn({ status, workspaces, selectedId, onSelect }: {
+  status: string;
+  workspaces: Workspace[];
+  selectedId: string | null;
+  onSelect: (ws: Workspace) => void;
+}) {
   const config: Record<string, { color: string; dot: string }> = {
     backlog: { color: "text-text-tertiary", dot: "bg-text-ghost" },
     active: { color: "text-accent", dot: "bg-accent" },
@@ -150,14 +233,123 @@ function KanbanColumn({ status }: { status: string }) {
         <h3 className={`text-[11px] font-semibold uppercase tracking-wider ${color}`}>
           {status}
         </h3>
-        <span className="ml-auto text-[10px] font-mono text-text-ghost">0</span>
+        <span className="ml-auto text-[10px] font-mono text-text-ghost">{workspaces.length}</span>
       </div>
-      <div className="flex-1 p-3 flex items-center justify-center min-h-[180px]">
-        <p className="text-[11px] text-text-ghost text-center">
-          Drop workspaces here
-        </p>
+      <div className="flex-1 p-3 min-h-[180px] flex flex-col gap-2">
+        {workspaces.length === 0 ? (
+          <p className="text-[11px] text-text-ghost text-center mt-8">
+            Drop workspaces here
+          </p>
+        ) : (
+          workspaces.map((ws) => (
+            <button
+              key={ws.id}
+              onClick={() => onSelect(ws)}
+              className={`w-full text-left px-3 py-2.5 rounded-md border transition-all duration-150 ${
+                ws.id === selectedId
+                  ? "border-accent bg-accent-muted"
+                  : "border-border bg-card-bg-hover hover:border-border-strong"
+              }`}
+            >
+              <div className="text-[12px] font-medium text-text-primary truncate">{ws.name}</div>
+              <div className="text-[10px] font-mono text-text-ghost mt-0.5 truncate">{ws.branch}</div>
+            </button>
+          ))
+        )}
       </div>
     </div>
+  );
+}
+
+/* — Create Workspace Dialog — */
+function CreateWorkspaceDialog({ onClose, onCreate }: {
+  onClose: () => void;
+  onCreate: (name: string, branch: string, path: string) => void;
+}) {
+  const [name, setName] = useState("");
+  const [branch, setBranch] = useState("main");
+  const [path, setPath] = useState("");
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="card-glass rounded-xl p-6 w-[400px] flex flex-col gap-4">
+        <h3 className="text-[14px] font-semibold text-text-primary">New Workspace</h3>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Workspace name"
+          className="bg-input-bg border border-border rounded-md px-3 py-2 text-[13px] text-text-primary placeholder:text-text-ghost focus:outline-none focus:border-accent transition-colors"
+          autoFocus
+        />
+        <input
+          type="text"
+          value={branch}
+          onChange={(e) => setBranch(e.target.value)}
+          placeholder="Branch name"
+          className="bg-input-bg border border-border rounded-md px-3 py-2 text-[13px] text-text-primary placeholder:text-text-ghost focus:outline-none focus:border-accent transition-colors"
+        />
+        <input
+          type="text"
+          value={path}
+          onChange={(e) => setPath(e.target.value)}
+          placeholder="Worktree path (e.g., /home/user/project)"
+          className="bg-input-bg border border-border rounded-md px-3 py-2 text-[13px] text-text-primary placeholder:text-text-ghost focus:outline-none focus:border-accent transition-colors"
+        />
+        <div className="flex justify-end gap-2 pt-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 text-[12px] text-text-ghost hover:text-text-secondary transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => name.trim() && onCreate(name.trim(), branch.trim(), path.trim())}
+            disabled={!name.trim()}
+            className="px-4 py-2 text-[12px] font-medium bg-accent hover:bg-accent-hover text-white rounded-md transition-colors disabled:opacity-40"
+          >
+            Create
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* — Dashboard (wired to real data) — */
+function DashboardView() {
+  const workspaces = useWorkspaceStore((s) => s.workspaces);
+  const sessions = useAgentStore((s) => s.sessions);
+
+  const sessionList = Object.values(sessions);
+  const runningCount = sessionList.filter((s) => s.status === "running").length;
+  const totalCost = sessionList.reduce((sum, s) => sum + s.metrics.costUsd, 0);
+  const totalTokens = sessionList.reduce((sum, s) => sum + s.metrics.tokensIn + s.metrics.tokensOut, 0);
+
+  const stats = {
+    totalWorkspaces: workspaces.length,
+    activeAgents: runningCount,
+    totalCostUsd: totalCost,
+    totalTokens,
+  };
+
+  const recentSessions = sessionList
+    .sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime())
+    .slice(0, 10)
+    .map((s) => {
+      const ws = workspaces.find((w) => w.id === s.workspaceId);
+      return {
+        id: s.id,
+        workspaceName: ws?.name ?? s.workspaceId,
+        agentType: s.agentType,
+        status: s.status,
+        costUsd: s.metrics.costUsd,
+        startedAt: s.startedAt,
+      };
+    });
+
+  return (
+    <ProjectDashboard stats={stats} recentSessions={recentSessions} />
   );
 }
 

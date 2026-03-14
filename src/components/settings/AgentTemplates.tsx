@@ -46,11 +46,11 @@ export function AgentTemplates({
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1">
       {templates.map((template) => (
         <div
           key={template.id}
-          className="px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg"
+          className="px-4 py-3 border-b border-border last:border-b-0"
         >
           {editingId === template.id ? (
             <div className="flex flex-col gap-2">
@@ -61,7 +61,7 @@ export function AgentTemplates({
                   setEditForm({ ...editForm, name: e.target.value })
                 }
                 placeholder="Template name"
-                className="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-blue-500"
+                className="bg-input-bg border border-border rounded-md px-2.5 py-1.5 text-[13px] text-text-primary placeholder:text-text-ghost focus:outline-none focus:border-accent transition-colors"
               />
               <input
                 type="text"
@@ -70,7 +70,7 @@ export function AgentTemplates({
                   setEditForm({ ...editForm, command: e.target.value })
                 }
                 placeholder="Command (e.g., claude)"
-                className="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-blue-500"
+                className="bg-input-bg border border-border rounded-md px-2.5 py-1.5 text-[13px] text-text-primary placeholder:text-text-ghost focus:outline-none focus:border-accent transition-colors"
               />
               <input
                 type="text"
@@ -82,7 +82,7 @@ export function AgentTemplates({
                   })
                 }
                 placeholder="Args (space-separated)"
-                className="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-blue-500"
+                className="bg-input-bg border border-border rounded-md px-2.5 py-1.5 text-[13px] text-text-primary placeholder:text-text-ghost focus:outline-none focus:border-accent transition-colors"
               />
               <div className="flex gap-2">
                 <select
@@ -90,7 +90,7 @@ export function AgentTemplates({
                   onChange={(e) =>
                     setEditForm({ ...editForm, inputMode: e.target.value })
                   }
-                  className="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-gray-200"
+                  className="bg-input-bg border border-border rounded-md px-2.5 py-1.5 text-[12px] text-text-primary focus:outline-none focus:border-accent transition-colors cursor-pointer"
                 >
                   <option value="pty_stdin">PTY stdin</option>
                   <option value="flag_message">Flag message</option>
@@ -101,18 +101,18 @@ export function AgentTemplates({
                   onChange={(e) =>
                     setEditForm({ ...editForm, outputMode: e.target.value })
                   }
-                  className="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-gray-200"
+                  className="bg-input-bg border border-border rounded-md px-2.5 py-1.5 text-[12px] text-text-primary focus:outline-none focus:border-accent transition-colors cursor-pointer"
                 >
                   <option value="json_stream">JSON stream</option>
                   <option value="text_markers">Text markers</option>
                   <option value="raw_pty">Raw PTY</option>
                 </select>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 pt-1">
                 <button
                   type="button"
                   onClick={handleSave}
-                  className="px-3 py-1 text-xs text-green-400 hover:text-green-300 border border-green-800 rounded"
+                  className="px-3 py-1.5 text-[12px] text-success hover:text-success/80 border border-success/30 rounded-md transition-colors"
                 >
                   Save
                 </button>
@@ -122,7 +122,7 @@ export function AgentTemplates({
                     setEditingId(null);
                     setEditForm({});
                   }}
-                  className="px-3 py-1 text-xs text-gray-500 hover:text-gray-300"
+                  className="px-3 py-1.5 text-[12px] text-text-ghost hover:text-text-secondary transition-colors"
                 >
                   Cancel
                 </button>
@@ -131,15 +131,15 @@ export function AgentTemplates({
           ) : (
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-gray-200">
+                <span className="text-[13px] font-medium text-text-primary">
                   {template.name}
                 </span>
                 {template.builtIn && (
-                  <span className="text-[10px] font-semibold text-blue-400 bg-blue-900/30 px-1.5 py-0.5 rounded">
+                  <span className="text-[9px] font-mono uppercase tracking-wider text-accent bg-accent-muted px-1.5 py-0.5 rounded">
                     Built-in
                   </span>
                 )}
-                <span className="text-xs text-gray-500 font-mono">
+                <span className="text-[11px] text-text-ghost font-mono">
                   {template.command}
                 </span>
               </div>
@@ -147,7 +147,7 @@ export function AgentTemplates({
                 <button
                   type="button"
                   onClick={() => startEdit(template)}
-                  className="px-2 py-1 text-xs text-blue-400 hover:text-blue-300"
+                  className="px-2 py-1 text-[12px] text-accent hover:text-accent-hover transition-colors"
                 >
                   Edit
                 </button>
@@ -155,7 +155,7 @@ export function AgentTemplates({
                   <button
                     type="button"
                     onClick={() => onDelete(template.id)}
-                    className="px-2 py-1 text-xs text-red-400 hover:text-red-300"
+                    className="px-2 py-1 text-[12px] text-error hover:text-error/80 transition-colors"
                   >
                     Delete
                   </button>

@@ -4,7 +4,7 @@ import { Terminal } from "./Terminal";
 
 // Polyfill ResizeObserver for jsdom
 beforeAll(() => {
-  global.ResizeObserver = class ResizeObserver {
+  (globalThis as Record<string, unknown>).ResizeObserver = class ResizeObserver {
     observe = vi.fn();
     unobserve = vi.fn();
     disconnect = vi.fn();

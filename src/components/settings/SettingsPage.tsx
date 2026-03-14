@@ -33,14 +33,10 @@ export function SettingsPage() {
   const setTemplates = useSettingsStore((s) => s.setTemplates);
 
   useEffect(() => {
-    invoke<{ apiKeys: typeof DEFAULT_API_KEYS }>("get_settings")
-      .then((settings) => {
-        if (settings.apiKeys) setApiKeys(settings.apiKeys);
-      })
-      .catch(() => {
-        if (apiKeys.length === 0) setApiKeys(DEFAULT_API_KEYS);
-      });
+    // Settings are loaded by useBootstrap; just ensure API keys have defaults
+    if (apiKeys.length === 0) setApiKeys(DEFAULT_API_KEYS);
 
+    // Templates are also loaded by useBootstrap, but reload here for navigation
     invoke<typeof templates>("list_agent_templates")
       .then((t) => { if (Array.isArray(t)) setTemplates(t); })
       .catch(() => {});

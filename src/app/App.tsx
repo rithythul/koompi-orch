@@ -5,10 +5,12 @@ import { CommandPalette } from "../components/layout/CommandPalette";
 import { ToastContainer } from "../components/notifications/ToastContainer";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useAgentEvents } from "../hooks/useAgentEvents";
+import { useBootstrap } from "../hooks/useBootstrap";
 
 function App() {
   const theme = useSettingsStore((s) => s.theme);
   useAgentEvents();
+  useBootstrap();
 
   useEffect(() => {
     const root = document.documentElement;

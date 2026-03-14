@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAgentStore, type ChatMessage } from "../../stores/agentStore";
+import { useWorkspaceStore } from "../../stores/workspaceStore";
+import { useSettingsStore } from "../../stores/settingsStore";
 
 interface RightPanelProps {
   collapsed: boolean;
@@ -11,6 +13,9 @@ export function RightPanel({ collapsed }: RightPanelProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const activeSession = useAgentStore((s) => s.activeSession)();
   const appendMessage = useAgentStore((s) => s.appendMessage);
+  const updateSessionStatus = useAgentStore((s) => s.updateSessionStatus);
+  const selectedWorkspace = useWorkspaceStore((s) => s.selectedWorkspace)();
+  const defaultAgent = useSettingsStore((s) => s.defaultAgent);
 
   const isConnected = activeSession?.status === "running";
   const statusColor = isConnected ? "bg-success" : "bg-text-ghost";
@@ -41,13 +46,26 @@ export function RightPanel({ collapsed }: RightPanelProps) {
     // If no session is running, spawn one
     if (activeSession.status !== "running") {
       try {
+        const workspacePath = selectedWorkspace?.worktreePath || ".";
+        const agentType = activeSession.agentType || defaultAgent;
+
+        updateSessionStatus(activeSession.id, "running");
+
         await invoke("spawn_agent", {
-          agentType: activeSession.agentType,
-          workspacePath: ".",
+          agentType,
+          workspacePath,
           task: message,
         });
       } catch (err) {
         console.error("Failed to spawn agent:", err);
+        updateSessionStatus(activeSession.id, "crashed");
+        appendMessage(activeSession.id, {
+          id: `error-${Date.now()}`,
+          role: "assistant",
+          content: `Failed to start agent: ${err}`,
+          turn: 0,
+          timestamp: new Date().toISOString(),
+        });
       }
     }
   };
@@ -62,7 +80,14 @@ export function RightPanel({ collapsed }: RightPanelProps) {
           <div className={`w-2 h-2 rounded-full ${statusColor}`} />
           <h2 className="text-[13px] font-medium text-text-primary">Agent Chat</h2>
         </div>
-        <span className="text-[10px] font-mono text-text-ghost">{statusText}</span>
+        <div className="flex items-center gap-2">
+          {selectedWorkspace && (
+            <span className="text-[10px] font-mono text-text-ghost truncate max-w-[100px]">
+              {selectedWorkspace.name}
+            </span>
+          )}
+          <span className="text-[10px] font-mono text-text-ghost">{statusText}</span>
+        </div>
       </div>
 
       {/* Messages or empty state */}
@@ -82,7 +107,10 @@ export function RightPanel({ collapsed }: RightPanelProps) {
             </svg>
           </div>
           <p className="text-[13px] text-text-tertiary text-center leading-relaxed">
-            Select a workspace to start an agent session
+            {selectedWorkspace
+              ? `Workspace "${selectedWorkspace.name}" selected. Send a message to start an agent.`
+              : "Select a workspace to start an agent session"
+            }
           </p>
           <p className="text-[11px] text-text-ghost text-center mt-1">
             Agents will stream output here in real-time
@@ -133,17 +161,29 @@ export function RightPanel({ collapsed }: RightPanelProps) {
 function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
   const isTool = message.role === "tool";
+  const toggleCollapse = useAgentStore((s) => s.toggleToolCollapse);
+  const activeSessionId = useAgentStore((s) => s.activeSessionId);
 
   if (isTool) {
     return (
       <div className="rounded-md bg-card-bg border border-border px-3 py-2">
-        <div className="flex items-center gap-1.5 mb-1">
-          <svg width="10" height="10" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-ghost">
-            <rect x="2" y="2" width="12" height="12" rx="2"/>
-            <path d="M6 6L10 10M10 6L6 10"/>
+        <button
+          onClick={() => activeSessionId && toggleCollapse(activeSessionId, message.id)}
+          className="flex items-center gap-1.5 mb-1 w-full text-left"
+        >
+          <svg
+            width="10"
+            height="10"
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            className={`text-text-ghost transition-transform ${message.collapsed ? "" : "rotate-90"}`}
+          >
+            <path d="M6 4L10 8L6 12"/>
           </svg>
           <span className="text-[10px] font-mono text-text-ghost">{message.toolName}</span>
-        </div>
+        </button>
         {!message.collapsed && (
           <pre className="text-[11px] text-text-tertiary whitespace-pre-wrap break-words max-h-32 overflow-auto">
             {message.content}

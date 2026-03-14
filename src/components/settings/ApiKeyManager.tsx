@@ -29,22 +29,22 @@ export function ApiKeyManager({
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1">
       {keys.map((entry) => (
         <div
           key={entry.provider}
-          className="flex items-center justify-between px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg"
+          className="flex items-center justify-between px-4 py-3 border-b border-border last:border-b-0"
         >
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-gray-200">
+            <span className="text-[13px] font-medium text-text-primary">
               {entry.label}
             </span>
             {entry.hasKey ? (
-              <span className="text-[10px] font-semibold text-green-400 bg-green-900/30 px-1.5 py-0.5 rounded">
+              <span className="text-[10px] font-semibold text-success bg-success-muted px-1.5 py-0.5 rounded">
                 Configured
               </span>
             ) : (
-              <span className="text-[10px] font-semibold text-gray-500 bg-gray-800 px-1.5 py-0.5 rounded">
+              <span className="text-[10px] font-semibold text-text-ghost bg-card-bg-hover px-1.5 py-0.5 rounded">
                 Not configured
               </span>
             )}
@@ -57,7 +57,7 @@ export function ApiKeyManager({
                   value={keyValue}
                   onChange={(e) => setKeyValue(e.target.value)}
                   placeholder="sk-..."
-                  className="w-48 bg-gray-900 border border-gray-600 rounded px-2 py-1 text-xs text-gray-200 focus:outline-none focus:border-blue-500"
+                  className="w-48 bg-input-bg border border-border rounded-md px-2.5 py-1.5 text-[12px] text-text-primary placeholder:text-text-ghost focus:outline-none focus:border-accent transition-colors"
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleSave(entry.provider);
                     if (e.key === "Escape") {
@@ -65,11 +65,12 @@ export function ApiKeyManager({
                       setKeyValue("");
                     }
                   }}
+                  autoFocus
                 />
                 <button
                   type="button"
                   onClick={() => handleSave(entry.provider)}
-                  className="px-2 py-1 text-xs text-green-400 hover:text-green-300"
+                  className="px-2 py-1 text-[12px] text-success hover:text-success/80 transition-colors"
                 >
                   Save
                 </button>
@@ -79,7 +80,7 @@ export function ApiKeyManager({
                     setEditingProvider(null);
                     setKeyValue("");
                   }}
-                  className="px-2 py-1 text-xs text-gray-500 hover:text-gray-300"
+                  className="px-2 py-1 text-[12px] text-text-ghost hover:text-text-secondary transition-colors"
                 >
                   Cancel
                 </button>
@@ -89,7 +90,7 @@ export function ApiKeyManager({
                 <button
                   type="button"
                   onClick={() => setEditingProvider(entry.provider)}
-                  className="px-2 py-1 text-xs text-blue-400 hover:text-blue-300"
+                  className="px-2 py-1 text-[12px] text-accent hover:text-accent-hover transition-colors"
                 >
                   {entry.hasKey ? "Update" : "Add"}
                 </button>
@@ -97,7 +98,7 @@ export function ApiKeyManager({
                   <button
                     type="button"
                     onClick={() => onDeleteKey(entry.provider)}
-                    className="px-2 py-1 text-xs text-red-400 hover:text-red-300"
+                    className="px-2 py-1 text-[12px] text-error hover:text-error/80 transition-colors"
                   >
                     Delete
                   </button>

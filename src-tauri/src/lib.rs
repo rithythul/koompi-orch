@@ -95,6 +95,11 @@ pub fn run() {
             running_agent_count,
             set_setting,
             get_settings,
+            list_agent_templates,
+            save_agent_template,
+            delete_agent_template,
+            save_api_key,
+            delete_api_key,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
