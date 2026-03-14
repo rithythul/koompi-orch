@@ -4,9 +4,11 @@ import { ThreePanel } from "../components/layout/ThreePanel";
 import { CommandPalette } from "../components/layout/CommandPalette";
 import { ToastContainer } from "../components/notifications/ToastContainer";
 import { useSettingsStore } from "../stores/settingsStore";
+import { useAgentEvents } from "../hooks/useAgentEvents";
 
 function App() {
   const theme = useSettingsStore((s) => s.theme);
+  useAgentEvents();
 
   useEffect(() => {
     const root = document.documentElement;
