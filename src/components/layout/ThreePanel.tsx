@@ -16,7 +16,7 @@ export function ThreePanel() {
   }, [toggleSidebar, toggleRightPanel, toggleZenMode]);
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden">
+    <div className="flex h-screen w-screen overflow-hidden noise-bg">
       <Sidebar collapsed={zenMode || sidebarCollapsed} />
       <CenterPanel />
       <RightPanel collapsed={zenMode || rightPanelCollapsed} />

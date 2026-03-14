@@ -112,128 +112,165 @@ export function SettingsPage() {
   );
 
   return (
-    <div className="max-w-2xl mx-auto py-6 px-4 flex flex-col gap-8">
-      <h1 className="text-xl font-bold text-gray-100">Settings</h1>
-
-      <section>
-        <h2 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">
-          Appearance
-        </h2>
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg">
-          <span className="text-sm text-gray-300">Theme</span>
-          <ThemeToggle theme={theme} onToggle={handleThemeToggle} />
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="h-[48px] px-6 flex items-center justify-between border-b border-border shrink-0">
+        <div className="flex items-center gap-3">
+          <h2 className="text-[13px] font-semibold text-text-primary">Settings</h2>
+          <span className="text-text-ghost">·</span>
+          <span className="text-[11px] text-text-tertiary">Preferences & configuration</span>
         </div>
-      </section>
+      </div>
 
-      <section>
-        <h2 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">
-          General
-        </h2>
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg">
-            <span className="text-sm text-gray-300">
-              Max concurrent agents
-            </span>
-            <input
-              type="number"
-              min={1}
-              max={50}
-              value={maxConcurrentAgents}
-              onChange={(e) =>
-                setMaxConcurrentAgents(Number(e.target.value) || 10)
-              }
-              className="w-16 bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm text-gray-200 text-center focus:outline-none focus:border-blue-500"
+      <div className="flex-1 overflow-auto">
+        <div className="max-w-2xl mx-auto py-6 px-6 flex flex-col gap-8 stagger-children">
+
+          {/* Appearance */}
+          <SettingsSection label="Appearance">
+            <SettingsRow label="Theme" description="Switch between dark and light mode">
+              <ThemeToggle theme={theme} onToggle={handleThemeToggle} />
+            </SettingsRow>
+          </SettingsSection>
+
+          {/* General */}
+          <SettingsSection label="General">
+            <SettingsRow label="Max concurrent agents" description="Maximum number of agents running in parallel">
+              <input
+                type="number"
+                min={1}
+                max={50}
+                value={maxConcurrentAgents}
+                onChange={(e) => setMaxConcurrentAgents(Number(e.target.value) || 10)}
+                className="w-16 bg-[rgba(255,255,255,0.03)] border border-border rounded-md px-2.5 py-1.5 text-[13px] font-mono text-text-primary text-center focus:outline-none focus:border-accent transition-colors"
+              />
+            </SettingsRow>
+            <SettingsRow label="Default agent" description="Agent used when creating new sessions">
+              <SelectInput value={defaultAgent} onChange={setDefaultAgent} options={[
+                { value: "claude-code", label: "Claude Code" },
+                { value: "codex", label: "Codex" },
+                { value: "gemini-cli", label: "Gemini CLI" },
+                { value: "aider", label: "Aider" },
+                { value: "custom", label: "Custom" },
+              ]} />
+            </SettingsRow>
+            <SettingsRow label="Default role" description="Role assigned to new pipeline steps">
+              <SelectInput value={defaultRole} onChange={setDefaultRole} options={[
+                { value: "architect", label: "Architect" },
+                { value: "implementer", label: "Implementer" },
+                { value: "reviewer", label: "Reviewer" },
+                { value: "tester", label: "Tester" },
+                { value: "shipper", label: "Shipper" },
+                { value: "fixer", label: "Fixer" },
+              ]} />
+            </SettingsRow>
+            <SettingsRow label="Auto-review" description="Automatically trigger review after implementation">
+              <ToggleSwitch checked={autoReview} onChange={setAutoReview} />
+            </SettingsRow>
+            <SettingsRow label="Auto-checkpoint" description="Create git checkpoints between pipeline steps">
+              <ToggleSwitch checked={autoCheckpoint} onChange={setAutoCheckpoint} />
+            </SettingsRow>
+          </SettingsSection>
+
+          {/* API Keys */}
+          <SettingsSection label="API Keys" description="Stored securely via OS keychain (Stronghold). Never written to config files.">
+            <ApiKeyManager
+              keys={apiKeys.length > 0 ? apiKeys : DEFAULT_API_KEYS}
+              onSaveKey={handleSaveKey}
+              onDeleteKey={handleDeleteKey}
             />
-          </div>
-          <div className="flex items-center justify-between px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg">
-            <span className="text-sm text-gray-300">Default agent</span>
-            <select
-              value={defaultAgent}
-              onChange={(e) => setDefaultAgent(e.target.value)}
-              className="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-blue-500"
-            >
-              <option value="claude-code">Claude Code</option>
-              <option value="codex">Codex</option>
-              <option value="gemini-cli">Gemini CLI</option>
-              <option value="aider">Aider</option>
-              <option value="custom">Custom</option>
-            </select>
-          </div>
-          <div className="flex items-center justify-between px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg">
-            <span className="text-sm text-gray-300">Default role</span>
-            <select
-              value={defaultRole}
-              onChange={(e) => setDefaultRole(e.target.value)}
-              className="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-blue-500"
-            >
-              <option value="architect">Architect</option>
-              <option value="implementer">Implementer</option>
-              <option value="reviewer">Reviewer</option>
-              <option value="tester">Tester</option>
-              <option value="shipper">Shipper</option>
-              <option value="fixer">Fixer</option>
-            </select>
-          </div>
-          <div className="flex items-center justify-between px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg">
-            <span className="text-sm text-gray-300">Auto-review</span>
-            <button
-              type="button"
-              onClick={() => setAutoReview(!autoReview)}
-              className={`w-10 h-5 rounded-full transition-colors ${
-                autoReview ? "bg-blue-500" : "bg-gray-600"
-              }`}
-            >
-              <span
-                className={`block w-4 h-4 rounded-full bg-white transform transition-transform ${
-                  autoReview ? "translate-x-5" : "translate-x-0.5"
-                }`}
-              />
-            </button>
-          </div>
-          <div className="flex items-center justify-between px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg">
-            <span className="text-sm text-gray-300">Auto-checkpoint</span>
-            <button
-              type="button"
-              onClick={() => setAutoCheckpoint(!autoCheckpoint)}
-              className={`w-10 h-5 rounded-full transition-colors ${
-                autoCheckpoint ? "bg-blue-500" : "bg-gray-600"
-              }`}
-            >
-              <span
-                className={`block w-4 h-4 rounded-full bg-white transform transition-transform ${
-                  autoCheckpoint ? "translate-x-5" : "translate-x-0.5"
-                }`}
-              />
-            </button>
-          </div>
+          </SettingsSection>
+
+          {/* Agent Templates */}
+          <SettingsSection label="Agent Templates">
+            <AgentTemplates
+              templates={templates}
+              onSave={handleSaveTemplate}
+              onDelete={handleDeleteTemplate}
+            />
+          </SettingsSection>
         </div>
-      </section>
-
-      <section>
-        <h2 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">
-          API Keys
-        </h2>
-        <p className="text-xs text-gray-500 mb-3">
-          Keys are stored securely via OS keychain (Stronghold). They are never
-          written to config files.
-        </p>
-        <ApiKeyManager
-          keys={apiKeys.length > 0 ? apiKeys : DEFAULT_API_KEYS}
-          onSaveKey={handleSaveKey}
-          onDeleteKey={handleDeleteKey}
-        />
-      </section>
-
-      <section>
-        <h2 className="text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wider">
-          Agent Templates
-        </h2>
-        <AgentTemplates
-          templates={templates}
-          onSave={handleSaveTemplate}
-          onDelete={handleDeleteTemplate}
-        />
-      </section>
+      </div>
     </div>
+  );
+}
+
+/* — Shared settings primitives — */
+
+function SettingsSection({ label, description, children }: {
+  label: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <div className="mb-3">
+        <h2 className="text-[10px] font-semibold font-mono text-text-ghost uppercase tracking-widest">
+          {label}
+        </h2>
+        {description && (
+          <p className="text-[11px] text-text-ghost mt-1">{description}</p>
+        )}
+      </div>
+      <div className="flex flex-col gap-1 card-glass rounded-lg overflow-hidden">
+        {children}
+      </div>
+    </section>
+  );
+}
+
+function SettingsRow({ label, description, children }: {
+  label: string;
+  description?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between px-4 py-3 border-b border-border last:border-b-0">
+      <div className="flex-1 min-w-0 mr-4">
+        <span className="text-[13px] text-text-primary">{label}</span>
+        {description && (
+          <p className="text-[11px] text-text-ghost mt-0.5">{description}</p>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function SelectInput({ value, onChange, options }: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="bg-[rgba(255,255,255,0.03)] border border-border rounded-md px-2.5 py-1.5 text-[13px] text-text-primary focus:outline-none focus:border-accent transition-colors cursor-pointer"
+    >
+      {options.map((o) => (
+        <option key={o.value} value={o.value}>{o.label}</option>
+      ))}
+    </select>
+  );
+}
+
+function ToggleSwitch({ checked, onChange }: {
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`relative w-9 h-5 rounded-full transition-colors duration-200 ${
+        checked ? "bg-accent" : "bg-[rgba(255,255,255,0.1)]"
+      }`}
+    >
+      <span
+        className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform duration-200 ${
+          checked ? "translate-x-4" : "translate-x-0"
+        }`}
+      />
+    </button>
   );
 }

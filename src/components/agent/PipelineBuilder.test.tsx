@@ -67,7 +67,7 @@ describe("PipelineBuilder", () => {
     render(
       <PipelineBuilder steps={[]} onStepsChange={vi.fn()} />
     );
-    expect(screen.getByText("+ Add Step")).toBeDefined();
+    expect(screen.getByText("Add Step")).toBeDefined();
   });
 
   it("calls onStepsChange when a step is removed", () => {
@@ -93,7 +93,7 @@ describe("PipelineBuilder", () => {
     render(
       <PipelineBuilder steps={[]} onStepsChange={onChange} />
     );
-    fireEvent.click(screen.getByText("+ Add Step"));
+    fireEvent.click(screen.getByText("Add Step"));
     expect(onChange).toHaveBeenCalledWith([
       expect.objectContaining({
         role: "implementer",

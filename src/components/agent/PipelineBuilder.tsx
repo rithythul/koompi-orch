@@ -45,13 +45,13 @@ const HANDOFF_TYPES: PipelineStep["handoffType"][] = [
   "diff_only",
 ];
 
-const ROLE_COLORS: Record<string, string> = {
-  architect: "border-l-purple-500",
-  implementer: "border-l-blue-500",
-  reviewer: "border-l-yellow-500",
-  tester: "border-l-green-500",
-  shipper: "border-l-orange-500",
-  fixer: "border-l-red-500",
+const ROLE_COLORS: Record<string, { border: string; badge: string; text: string }> = {
+  architect: { border: "border-l-purple-400", badge: "bg-purple-400/10 text-purple-400", text: "text-purple-400" },
+  implementer: { border: "border-l-blue-400", badge: "bg-blue-400/10 text-blue-400", text: "text-blue-400" },
+  reviewer: { border: "border-l-amber-400", badge: "bg-amber-400/10 text-amber-400", text: "text-amber-400" },
+  tester: { border: "border-l-emerald-400", badge: "bg-emerald-400/10 text-emerald-400", text: "text-emerald-400" },
+  shipper: { border: "border-l-orange-400", badge: "bg-orange-400/10 text-orange-400", text: "text-orange-400" },
+  fixer: { border: "border-l-red-400", badge: "bg-red-400/10 text-red-400", text: "text-red-400" },
 };
 
 function SortableStep({
@@ -82,64 +82,75 @@ function SortableStep({
     opacity: isDragging ? 0.4 : 1,
   };
 
+  const colors = ROLE_COLORS[step.role] ?? { border: "border-l-gray-500", badge: "bg-[rgba(255,255,255,0.04)] text-text-ghost", text: "text-text-ghost" };
+
   return (
     <>
       <div
         ref={setNodeRef}
         style={style}
-        className={`flex items-center gap-3 px-4 py-3 bg-gray-800/50 border border-gray-700 ${
-          ROLE_COLORS[step.role] ?? "border-l-gray-500"
-        } border-l-4 rounded-lg`}
+        className={`card-glass rounded-lg ${colors.border} border-l-[3px] flex items-center gap-3 px-4 py-3 transition-all duration-150`}
       >
+        {/* Drag handle */}
         <div
           {...attributes}
           {...listeners}
-          className="cursor-grab text-gray-600 hover:text-gray-400"
+          className="cursor-grab text-text-ghost hover:text-text-tertiary transition-colors"
         >
-          <span className="text-xs select-none">::</span>
+          <svg width="10" height="14" viewBox="0 0 10 14" fill="currentColor">
+            <circle cx="3" cy="2" r="1.2"/><circle cx="7" cy="2" r="1.2"/>
+            <circle cx="3" cy="7" r="1.2"/><circle cx="7" cy="7" r="1.2"/>
+            <circle cx="3" cy="12" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
+          </svg>
         </div>
 
-        <span className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-xs font-bold text-gray-300">
+        {/* Step number */}
+        <span className={`w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-bold font-mono ${colors.badge}`}>
           {index + 1}
         </span>
 
+        {/* Selects */}
         <select
           value={step.role}
           onChange={(e) => onChange({ role: e.target.value })}
-          className="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-blue-500"
+          className="bg-[rgba(255,255,255,0.03)] border border-border rounded-md px-2.5 py-1.5 text-[12px] font-medium text-text-primary focus:outline-none focus:border-accent transition-colors cursor-pointer"
         >
           {ROLES.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
+            <option key={r} value={r}>{r}</option>
           ))}
         </select>
+
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-text-ghost shrink-0">
+          <path d="M6 4L10 8L6 12"/>
+        </svg>
 
         <select
           value={step.agentType}
           onChange={(e) => onChange({ agentType: e.target.value })}
-          className="bg-gray-900 border border-gray-600 rounded px-2 py-1 text-sm text-gray-200 focus:outline-none focus:border-blue-500"
+          className="bg-[rgba(255,255,255,0.03)] border border-border rounded-md px-2.5 py-1.5 text-[12px] font-mono text-text-secondary focus:outline-none focus:border-accent transition-colors cursor-pointer"
         >
           {AGENT_TYPES.map((a) => (
-            <option key={a} value={a}>
-              {a}
-            </option>
+            <option key={a} value={a}>{a}</option>
           ))}
         </select>
 
+        {/* Remove */}
         <button
           type="button"
           title="Remove step"
           onClick={onRemove}
-          className="ml-auto text-gray-600 hover:text-red-400 text-sm"
+          className="ml-auto w-6 h-6 rounded-md flex items-center justify-center text-text-ghost hover:text-error hover:bg-error-muted transition-all duration-150 opacity-0 group-hover:opacity-100"
         >
-          &times;
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
+            <path d="M4 4L12 12M12 4L4 12"/>
+          </svg>
         </button>
       </div>
 
+      {/* Handoff connector */}
       {showHandoff && (
-        <div className="flex items-center gap-2 pl-12 py-1">
-          <div className="w-px h-4 bg-gray-700" />
+        <div className="flex items-center gap-2 pl-[52px] py-0.5">
+          <div className="w-px h-5 bg-border" />
           <select
             value={step.handoffType ?? "summary"}
             onChange={(e) =>
@@ -147,15 +158,13 @@ function SortableStep({
                 handoffType: e.target.value as PipelineStep["handoffType"],
               })
             }
-            className="bg-gray-900 border border-gray-700 rounded px-2 py-0.5 text-[10px] text-gray-400 focus:outline-none focus:border-blue-500"
+            className="bg-[rgba(255,255,255,0.02)] border border-border rounded px-2 py-0.5 text-[10px] font-mono text-text-ghost focus:outline-none focus:border-accent transition-colors cursor-pointer"
           >
             {HANDOFF_TYPES.map((h) => (
-              <option key={h} value={h}>
-                {h}
-              </option>
+              <option key={h} value={h}>{h}</option>
             ))}
           </select>
-          <div className="w-px h-4 bg-gray-700" />
+          <div className="w-px h-5 bg-border" />
         </div>
       )}
     </>
@@ -211,10 +220,10 @@ export function PipelineBuilder({
   );
 
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-medium text-gray-300">Pipeline Steps</h3>
-        <span className="text-xs text-gray-500">
+    <div className="flex flex-col gap-1 max-w-2xl">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[12px] font-semibold text-text-secondary uppercase tracking-wider">Pipeline Steps</h3>
+        <span className="text-[10px] font-mono text-text-ghost">
           {steps.length} step{steps.length !== 1 ? "s" : ""}
         </span>
       </div>
@@ -228,16 +237,18 @@ export function PipelineBuilder({
           items={steps.map((s) => s.id)}
           strategy={verticalListSortingStrategy}
         >
-          {steps.map((step, index) => (
-            <SortableStep
-              key={step.id}
-              step={step}
-              index={index}
-              onRemove={() => removeStep(step.id)}
-              onChange={(patch) => updateStep(step.id, patch)}
-              showHandoff={index < steps.length - 1}
-            />
-          ))}
+          <div className="stagger-children">
+            {steps.map((step, index) => (
+              <SortableStep
+                key={step.id}
+                step={step}
+                index={index}
+                onRemove={() => removeStep(step.id)}
+                onChange={(patch) => updateStep(step.id, patch)}
+                showHandoff={index < steps.length - 1}
+              />
+            ))}
+          </div>
         </SortableContext>
         <DragOverlay />
       </DndContext>
@@ -245,9 +256,12 @@ export function PipelineBuilder({
       <button
         type="button"
         onClick={addStep}
-        className="mt-2 px-4 py-2 text-sm text-gray-400 hover:text-gray-200 border border-dashed border-gray-700 hover:border-gray-500 rounded-lg transition-colors"
+        className="mt-3 px-4 py-2.5 text-[12px] font-medium text-text-ghost hover:text-text-secondary border border-dashed border-border hover:border-border-strong rounded-lg transition-all duration-150 flex items-center justify-center gap-2"
       >
-        + Add Step
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M8 3V13M3 8H13"/>
+        </svg>
+        Add Step
       </button>
     </div>
   );
