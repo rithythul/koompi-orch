@@ -3,6 +3,7 @@ pub mod config;
 pub mod db;
 pub mod git;
 pub mod ipc;
+pub mod orchestrator;
 pub mod workspace;
 
 use config::AppConfig;
