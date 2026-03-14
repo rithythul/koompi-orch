@@ -1,8 +1,22 @@
+import { useNavigate, useLocation } from "react-router-dom";
+
 interface SidebarProps {
   collapsed: boolean;
 }
 
+const navItems = [
+  { label: "Workspaces", icon: "📋", path: "/" },
+  { label: "Dashboard", icon: "📊", path: "/dashboard" },
+  { label: "Pipelines", icon: "🔗", path: "/pipelines" },
+  { label: "Templates", icon: "🤖", path: "/templates" },
+  { label: "Plugins", icon: "🧩", path: "/plugins" },
+  { label: "Settings", icon: "⚙️", path: "/settings" },
+];
+
 export function Sidebar({ collapsed }: SidebarProps) {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   if (collapsed) return null;
 
   return (
@@ -13,10 +27,15 @@ export function Sidebar({ collapsed }: SidebarProps) {
       </div>
 
       <nav className="flex-1 p-2 space-y-1">
-        <SidebarItem label="Workspaces" icon="📋" active />
-        <SidebarItem label="Pipelines" icon="🔗" />
-        <SidebarItem label="Templates" icon="🤖" />
-        <SidebarItem label="Settings" icon="⚙️" />
+        {navItems.map((item) => (
+          <SidebarItem
+            key={item.path}
+            label={item.label}
+            icon={item.icon}
+            active={location.pathname === item.path}
+            onClick={() => navigate(item.path)}
+          />
+        ))}
       </nav>
 
       <div className="p-3 border-t border-border text-xs text-text-secondary">
@@ -30,13 +49,16 @@ function SidebarItem({
   label,
   icon,
   active = false,
+  onClick,
 }: {
   label: string;
   icon: string;
   active?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
+      onClick={onClick}
       className={`w-full text-left px-3 py-2 rounded text-sm flex items-center gap-2 transition-colors ${
         active
           ? "bg-accent/20 text-accent"
