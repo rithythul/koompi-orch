@@ -2903,6 +2903,7 @@ dependencies = [
  "dirs",
  "git2",
  "portable-pty",
+ "regex",
  "serde",
  "serde_json",
  "surrealdb",
